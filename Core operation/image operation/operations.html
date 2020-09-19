@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div class="inputoutput">
+    <img id="imageSrc" alt="No Image" />
+    <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+  </div>
+  <div class="inputoutput">
+    <canvas id="canvasInput" ></canvas>
+    <div class="caption">canvasOutput</div>
+  </div>
+
+  <div class="inputoutput">
+    <canvas id="canvasOutput" ></canvas>
+    <div class="caption">canvasOutput</div>
+  </div>
+  <button onclick="addborder()">Properties</button>
+</div>
+<script type="text/javascript">
+let imgElement = document.getElementById('imageSrc');
+let inputElement = document.getElementById('fileInput');
+inputElement.addEventListener('change', (e) => {
+  imgElement.src = URL.createObjectURL(e.target.files[0]);
+}, false);
+imgElement.onload = function() {
+  let mat = cv.imread(imgElement);
+  cv.imshow('canvasInput', mat);
+    mat.delete();
+};
+function onOpenCvReady() {
+  document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+}
+
+function getROI(){
+  let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+// You can try more different parameters
+let rect = new cv.Rect(100, 100, 200, 200);
+dst = src.roi(rect);
+cv.imshow('canvasOutput', dst);
+src.delete();
+dst.delete();
+}
+
+function addborder(){
+  let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+// You can try more different parameters
+let s = new cv.Scalar(255, 0, 0, 255);
+cv.copyMakeBorder(src, dst, 10, 10, 10, 10, cv.BORDER_CONSTANT, s);
+cv.imshow('canvasOutput', dst);
+src.delete();
+dst.delete();
+
+}
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>

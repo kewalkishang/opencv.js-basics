@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Trackbar OpenCV.js</title>
+</head>
+<body>
+<h2></h2>
+<p id="status">OpenCV.js is loading...</p>
+<h2>Trackbar Example</h2>
+
+<div>
+
+     <div>
+        <table cellpadding="0" cellspacing="0" width="0" border="0">
+        <tr>
+            <td>
+                <canvas id="canvasInput1" class="small"></canvas>
+            </td>
+        
+            <td>
+                <canvas id="canvasOutput" class="small"></canvas>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="caption">canvasInput1</div>
+            </td>
+           
+            <td>
+                <div class="caption">canvasOutput</div>
+            </td>
+        </tr>
+        </table>
+    </div> 
+    <button onclick="drawRect()">Draw Point</button>
+
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput1");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+
+function drawLine(){
+    let src = cv.imread("canvasInput1");
+    console.log('image width: ' + src.cols + '\n' +
+            'image height: ' + src.rows + '\n' +
+            'image size: ' + src.size().width + '*' + src.size().height + '\n' +
+            'image depth: ' + src.depth() + '\n' +
+            'image channels ' + src.channels() + '\n' +
+            'image type: ' + src.type() + '\n');
+
+   //let dst = new cv.Mat();
+  
+    //cv.Point(src1,point);
+  //  # Creating line 
+  cv.line(src, new cv.Point(20, 100), new cv.Point(100, 100), [0, 0, 255, 255], 10); 
+    cv.imshow('canvasOutput', src);
+    src.delete(); //dst.delete();
+}
+
+function drawCircle(){
+    // The first way
+    let src = cv.imread("canvasInput1");
+//let circle = new cv.Circle(center, radius);
+// The second way
+//let circle = {center : center, radius : radius};
+    let center = new cv.Point(100, 100);
+    cv.circle(src, center, 30, [0, 0, 0, 255], 5);
+    cv.imshow('canvasOutput', src);
+    src.delete(); 
+}
+
+function drawRect(){
+// The first way
+//let rect = new cv.Rect(x, y, width, height);
+// The second way
+//let rect = {x : x, y : y, width : width, height : height};
+let src = cv.imread("canvasInput1");
+ 
+    let point1 = new cv.Point(100, 100);
+    let point2 = new cv.Point(0, 0);
+    cv.rectangle(src, point1, point2, [0, 0, 0, 255], 2);
+  
+    cv.imshow('canvasOutput', src);
+    src.delete(); 
+}
+
+</script>
+
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>
