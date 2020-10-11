@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput" class="small"></canvas>
+        </td>
+    
+        <td>
+            <canvas id="canvasOutput" class="small"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput1</div>
+        </td>
+    
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div> 
+  <button onclick="HoughCircles()">HoughCircles</button>
+
+</div>
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+
+function HoughCircles(){
+    let src = cv.imread('canvasInput');
+let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8U);
+let circles = new cv.Mat();
+let color = new cv.Scalar(255, 0, 0);
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+// You can try more different parameters
+cv.HoughCircles(src, circles, cv.HOUGH_GRADIENT,
+                1, 45, 75, 40, 0, 0);
+// draw circles
+for (let i = 0; i < circles.cols; ++i) {
+    let x = circles.data32F[i * 3];
+    let y = circles.data32F[i * 3 + 1];
+    let radius = circles.data32F[i * 3 + 2];
+    let center = new cv.Point(x, y);
+    cv.circle(dst, center, radius, color);
+}
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); circles.delete();
+}
+
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>

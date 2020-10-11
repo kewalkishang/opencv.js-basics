@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput1" width="500" height="300"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasInput2" width="200" height="200"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput" width="500" height="300"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput1</div>
+        </td>
+        <td>
+            <div class="caption">canvasInput2</div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div> 
+  <button onclick="templateMatching()">templateMatching</button>
+
+</div>
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput1");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+canvas2 = document.getElementById("canvasInput2");
+context2 = canvas2.getContext("2d");
+
+img2 = new Image();
+//img2.crossOrigin = "anonymous"
+img2.onload = function() {
+   context2.drawImage(img2, 0, 0);
+};
+img2.src = 'face.jpg';
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+function templateMatching(){
+    let src = cv.imread('canvasInput1');
+let templ = cv.imread('canvasInput2');
+let dst = new cv.Mat();
+let mask = new cv.Mat();
+cv.matchTemplate(src, templ, dst, cv.TM_CCOEFF, mask);
+let result = cv.minMaxLoc(dst, mask);
+let maxPoint = result.maxLoc;
+let color = new cv.Scalar(255, 0, 0, 255);
+let point = new cv.Point(maxPoint.x + templ.cols, maxPoint.y + templ.rows);
+cv.rectangle(src, maxPoint, point, color, 2, cv.LINE_8, 0);
+cv.imshow('canvasOutput', src);
+src.delete(); dst.delete(); mask.delete();
+
+}
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>

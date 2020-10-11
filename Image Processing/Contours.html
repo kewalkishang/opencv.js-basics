@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput" class="small"></canvas>
+        </td>
+    
+        <td>
+            <canvas id="canvasOutput" class="small"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput1</div>
+        </td>
+    
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div> 
+  <button onclick="getContours()">Contours</button>
+  <button onclick="BoundingRect()">BoundingRect</button>
+  <button onclick="ConvexHull()">ConvexHull</button>
+  <button onclick="ImageTranspose()">transpose</button>
+  <button onclick="ConvexityDefect()">ConvexityDefect</button>
+  <button onclick="MatchShapessa()">MatchShapes</button>
+</div>
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+
+//getting started
+function getContours(){
+    let src = cv.imread('canvasInput');
+let dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(src, src, 120, 200, cv.THRESH_BINARY);
+let contours = new cv.MatVector();
+let hierarchy = new cv.Mat();
+// You can try more different parameters
+cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+// draw contours with random Scalar
+for (let i = 0; i < contours.size(); ++i) {
+    let color = new cv.Scalar(Math.round(Math.random() * 255), Math.round(Math.random() * 255),
+                              Math.round(Math.random() * 255));
+    cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+}
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
+}
+
+//contour features
+function BoundingRect(){
+    let src = cv.imread('canvasInput');
+let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(src, src, 177, 200, cv.THRESH_BINARY);
+let contours = new cv.MatVector();
+let hierarchy = new cv.Mat();
+cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+let cnt = contours.get(0);
+// You can try more different parameters
+let rect = cv.boundingRect(cnt);
+let contoursColor = new cv.Scalar(255, 255, 255);
+let rectangleColor = new cv.Scalar(255, 0, 0);
+cv.drawContours(dst, contours, 0, contoursColor, 1, 8, hierarchy, 100);
+let point1 = new cv.Point(rect.x, rect.y);
+let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
+cv.rectangle(dst, point1, point2, rectangleColor, 2, cv.LINE_AA, 0);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); cnt.delete();
+//Bounding can be line, rotatedbounding , minBounding, ellipse , circle.
+}
+
+function ConvexHull(){
+    let src = cv.imread('canvasInput');
+let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(src, src, 100, 200, cv.THRESH_BINARY);
+let contours = new cv.MatVector();
+let hierarchy = new cv.Mat();
+let hull = new cv.MatVector();
+cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+// approximates each contour to convex hull
+for (let i = 0; i < contours.size(); ++i) {
+    let tmp = new cv.Mat();
+    let cnt = contours.get(i);
+    // You can try more different parameters
+    cv.convexHull(cnt, tmp, false, true);
+    hull.push_back(tmp);
+    cnt.delete(); tmp.delete();
+}
+// draw contours with random Scalar
+for (let i = 0; i < contours.size(); ++i) {
+    let colorHull = new cv.Scalar(Math.round(Math.random() * 255), Math.round(Math.random() * 255),
+                                  Math.round(Math.random() * 255));
+    cv.drawContours(dst, hull, i, colorHull, 1, 8, hierarchy, 0);
+}
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); hierarchy.delete(); contours.delete(); hull.delete();
+}
+
+
+//contour properties
+/*function getContourProperties(){
+    let rect = cv.boundingRect(cnt);
+    let aspectRatio = rect.width / rect.height;
+
+    let area = cv.contourArea(cnt, false);
+let rect = cv.boundingRect(cnt));
+let rectArea = rect.width * rect.height;
+let extent = area / rectArea;
+
+let area = cv.contourArea(cnt, false);
+cv.convexHull(cnt, hull, false, true);
+let hullArea = cv.contourArea(hull, false);
+let solidity = area / hullArea;
+
+let area = cv.contourArea(cnt, false);
+let equiDiameter = Math.sqrt(4 * area / Math.PI);
+
+let rotatedRect = cv.fitEllipse(cnt);
+let angle = rotatedRect.angle;
+
+let result = cv.minMaxLoc(src, mask);
+let minVal = result.minVal;
+let maxVal = result.maxVal;
+let minLoc = result.minLoc;
+let maxLoc = result.maxLoc;
+
+let average = cv.mean(src, mask);
+}*/
+
+function ImageTranspose(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(src, src, 120, 200, cv.THRESH_BINARY);
+cv.transpose(src, dst);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete();
+
+}
+
+//contour : more functions
+function ConvexityDefect(){
+    let src = cv.imread('canvasInput');
+let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(src, src, 100, 200, cv.THRESH_BINARY);
+let contours = new cv.MatVector();
+let hierarchy = new cv.Mat();
+cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+let hull = new cv.Mat();
+let defect = new cv.Mat();
+let cnt = contours.get(0);
+let lineColor = new cv.Scalar(255, 0, 0);
+let circleColor = new cv.Scalar(255, 255, 255);
+cv.convexHull(cnt, hull, false, false);
+cv.convexityDefects(cnt, hull, defect);
+for (let i = 0; i < defect.rows; ++i) {
+    let start = new cv.Point(cnt.data32S[defect.data32S[i * 4] * 2],
+                             cnt.data32S[defect.data32S[i * 4] * 2 + 1]);
+    let end = new cv.Point(cnt.data32S[defect.data32S[i * 4 + 1] * 2],
+                           cnt.data32S[defect.data32S[i * 4 + 1] * 2 + 1]);
+    let far = new cv.Point(cnt.data32S[defect.data32S[i * 4 + 2] * 2],
+                           cnt.data32S[defect.data32S[i * 4 + 2] * 2 + 1]);
+    cv.line(dst, start, end, lineColor, 2, cv.LINE_AA, 0);
+    cv.circle(dst, far, 3, circleColor, -1);
+}
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); hierarchy.delete(); contours.delete(); hull.delete(); defect.delete();
+}
+
+function MatchShapessa(){
+    let src = cv.imread('canvasInput');
+let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(src, src, 177, 200, cv.THRESH_BINARY);
+let contours = new cv.MatVector();
+let hierarchy = new cv.Mat();
+cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+let contourID0 = 10;
+let contourID1 = 5;
+let color0 = new cv.Scalar(255, 0, 0);
+let color1 = new cv.Scalar(0, 0, 255);
+// You can try more different parameters
+let result = cv.matchShapes(contours.get(contourID0), contours.get(contourID1), 1, 0);
+//matchShapesOutput.innerHTML = result;
+cv.drawContours(dst, contours, contourID0, color0, 1, cv.LINE_8, hierarchy, 100);
+cv.drawContours(dst, contours, contourID1, color1, 1, cv.LINE_8, hierarchy, 100);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
+}
+//contour heirarchy
+/*
+Contour Retrieval Mode
+1. RETR_LIST
+This is the simplest of the four flags (from explanation point of view). It simply retrieves all the contours, but doesn't create any parent-child relationship. Parents and kids are equal under this rule, and they are just contours. ie they all belongs to same hierarchy level.
+
+So here, 3rd and 4th term in hierarchy array is always -1. But obviously, Next and Previous terms will have their corresponding values.
+
+2. RETR_EXTERNAL
+If you use this flag, it returns only extreme outer flags. All child contours are left behind. We can say, under this law, Only the eldest in every family is taken care of. It doesn't care about other members of the family).
+
+3. RETR_CCOMP
+This flag retrieves all the contours and arranges them to a 2-level hierarchy. ie external contours of the object (ie its boundary) are placed in hierarchy-1. And the contours of holes inside object (if any) is placed in hierarchy-2. If any object inside it, its contour is placed again in hierarchy-1 only. And its hole in hierarchy-2 and so on.
+
+Just consider the image of a "big white zero" on a black background. Outer circle of zero belongs to first hierarchy, and inner circle of zero belongs to second hierarchy.
+
+We can explain it with a simple image. Here I have labelled the order of contours in red color and the hierarchy they belongs to, in green color (either 1 or 2). The order is same as the order OpenCV detects contours.
+
+ccomp_hierarchy.png
+image
+So consider first contour, ie contour-0. It is hierarchy-1. It has two holes, contours 1&2, and they belong to hierarchy-2. So for contour-0, Next contour in same hierarchy level is contour-3. And there is no previous one. And its first is child is contour-1 in hierarchy-2. It has no parent, because it is in hierarchy-1. So its hierarchy array is [3,-1,1,-1]
+
+Now take contour-1. It is in hierarchy-2. Next one in same hierarchy (under the parenthood of contour-1) is contour-2. No previous one. No child, but parent is contour-0. So array is [2,-1,-1,0].
+
+Similarly contour-2 : It is in hierarchy-2. There is not next contour in same hierarchy under contour-0. So no Next. Previous is contour-1. No child, parent is contour-0. So array is [-1,1,-1,0].
+
+Contour - 3 : Next in hierarchy-1 is contour-5. Previous is contour-0. Child is contour-4 and no parent. So array is [5,0,4,-1].
+
+Contour - 4 : It is in hierarchy 2 under contour-3 and it has no sibling. So no next, no previous, no child, parent is contour-3. So array is [-1,-1,-1,3].
+
+4. RETR_TREE
+And this is the final guy, Mr.Perfect. It retrieves all the contours and creates a full family hierarchy list. It even tells, who is the grandpa, father, son, grandson and even beyond... :).
+*/
+
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>

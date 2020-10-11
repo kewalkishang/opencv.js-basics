@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+    <title>OpenCV Video Examples - Video</title>
+    <!-- <link href="app.css" rel="stylesheet"> -->
+</head>
+<body>
+<h1>OpenCV Video</h1>
+<video id="video" src="cup.mp4" muted width="320" height="240"></video>
+<canvas id="canvasOutput" width="320" height="240"></canvas>
+<button id="videocontroller">Start</button>
+<script async src="../opencv.js" type="text/javascript" onload="onCvLoaded();"></script>
+<script>
+function onCvLoaded () {
+    console.log('cv', cv);
+    cv.onRuntimeInitialized = onReady;
+    onReady();
+}
+const video = document.getElementById('video');
+const actionBtn = document.getElementById('actionBtn');
+const videocontroller = document.getElementById('videocontroller');
+const FPS = 30;
+let stream;
+let frame;  
+let streaming = false;
+function onReady () {
+    console.log('ready');
+    let src;
+    let dst;
+    let cap;
+    let trackWindow;
+    let trackBox;
+    let hsv;
+    let hsvVec;
+    let termCrit;
+    let hsvRoiVec;
+    let roiHist;
+    let roi;
+    let hsvRoi;
+    let mask;
+    video.controls = true;
+    //videocontroller.addEventListener('click',start);
+    video.addEventListener('play', start);
+  video.addEventListener('pause', stop);
+    video.addEventListener('ended', stop);
+
+    function start() {
+        console.log('playing...');
+        streaming = true;
+        const width = video.width;
+        const height = video.height;
+        src = new cv.Mat(height, width, cv.CV_8UC4);
+        dst = new cv.Mat(height, width, cv.CV_8UC1);
+        cap = new cv.VideoCapture(video);
+        frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        cap.read(frame);
+
+         trackWindow = new cv.Rect(200, 60, 63, 125);
+// set up the ROI for tracking
+roi = frame.roi(trackWindow);
+hsvRoi = new cv.Mat();
+cv.cvtColor(roi, hsvRoi, cv.COLOR_RGBA2RGB);
+cv.cvtColor(hsvRoi, hsvRoi, cv.COLOR_RGB2HSV);
+mask = new cv.Mat();
+let lowScalar = new cv.Scalar(30, 30, 0);
+let highScalar = new cv.Scalar(180, 180, 180);
+let low = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), lowScalar);
+let high = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), highScalar);
+cv.inRange(hsvRoi, low, high, mask);
+ roiHist = new cv.Mat();
+ hsvRoiVec = new cv.MatVector();
+hsvRoiVec.push_back(hsvRoi);
+cv.calcHist(hsvRoiVec, [0], mask, roiHist, [180], [0, 180]);
+cv.normalize(roiHist, roiHist, 0, 255, cv.NORM_MINMAX);
+
+// delete useless mats.
+roi.delete(); hsvRoi.delete(); mask.delete(); low.delete(); high.delete(); hsvRoiVec.delete();
+
+// Setup the termination criteria, either 10 iteration or move by atleast 1 pt
+termCrit = new cv.TermCriteria(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1);
+
+ hsv = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+ hsvVec = new cv.MatVector();
+hsvVec.push_back(hsv);
+//let dst = new cv.Mat();
+ trackBox = null;
+
+
+        
+        setTimeout(processVideo, 0);
+    }
+
+    function stop () {
+        console.log('paused or ended');
+        streaming = false;
+    }
+// hardcode the initial location of window
+
+
+
+    
+    function processVideo () {
+      if (!streaming) {
+            // clean and stop.
+            frame.delete(); dst.delete(); hsvVec.delete(); roiHist.delete(); hsv.delete();
+            return;
+        }
+        let begin = Date.now();
+
+        // start processing.
+        cap.read(frame);
+        cv.cvtColor(frame, hsv, cv.COLOR_RGBA2RGB);
+        cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
+        cv.calcBackProject(hsvVec, [0], roiHist, dst, [0, 180], 1);
+
+        // apply camshift to get the new location
+        [trackBox, trackWindow] = cv.CamShift(dst, trackWindow, termCrit);
+console.log("camshift");
+        // Draw it on image
+        let pts = cv.rotatedRectPoints(trackBox);
+        console.log(" pts " + pts[0] + " " + pts[1] )
+        cv.line(frame, pts[0], pts[1], [255, 0, 0, 255], 3);
+        cv.line(frame, pts[1], pts[2], [255, 0, 0, 255], 3);
+        cv.line(frame, pts[2], pts[3], [255, 0, 0, 255], 3);
+        cv.line(frame, pts[3], pts[0], [255, 0, 0, 255], 3);
+        cv.imshow('canvasOutput', frame);
+
+        // schedule the next one.
+        let delay = 1000/FPS - (Date.now() - begin);
+        setTimeout(processVideo, delay);
+    }
+
+   // start();
+}
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput" class="small"></canvas>
+        </td>
+    
+        <td>
+            <canvas id="canvasOutput" class="small"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput1</div>
+        </td>
+    
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div> 
+  <button onclick="addFilter()">Filter</button>
+  <button onclick="addAvgBlur()">AVGBlur</button>
+  <button onclick="addGaussianBlur()">GaussianBlur</button>
+  <button onclick="addMedianBlur()">MedianBlur</button>
+  <button onclick="addBilateralFilter()">bilateralFilter</button>
+
+</div>
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+
+function addFilter(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+let M = cv.Mat.eye(3, 3, cv.CV_32FC1);
+let anchor = new cv.Point(-1, -1);
+// You can try more different parameters
+cv.filter2D(src, dst, cv.CV_8U, M, anchor, 0, cv.BORDER_DEFAULT);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete(); M.delete();
+
+}
+
+function addAvgBlur(){
+let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+let ksize = new cv.Size(3, 3);
+let anchor = new cv.Point(-1, -1);
+// You can try more different parameters
+cv.blur(src, dst, ksize, anchor, cv.BORDER_DEFAULT);
+// cv.boxFilter(src, dst, -1, ksize, anchor, true, cv.BORDER_DEFAULT)
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete();
+}
+
+function addGaussianBlur(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+let ksize = new cv.Size(3, 3);
+// You can try more different parameters
+cv.GaussianBlur(src, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete();
+}
+
+function addMedianBlur(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+// You can try more different parameters
+cv.medianBlur(src, dst, 5);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete();
+}
+
+function addBilateralFilter(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+cv.cvtColor(src, src, cv.COLOR_RGBA2RGB, 0);
+// You can try more different parameters
+cv.bilateralFilter(src, dst, 9, 75, 75, cv.BORDER_DEFAULT);
+cv.imshow('canvasOutput', dst);
+src.delete(); dst.delete();
+}
+
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput1" class="small"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasInput2" class="small"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput" class="small"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput1</div>
+        </td>
+        <td>
+            <div class="caption">canvasInput2</div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div> 
+  <button onclick="HistogramBackprojection()">HistogramBackprojection</button>
+
+</div>
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput1");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+canvas2 = document.getElementById("canvasInput2");
+context2 = canvas2.getContext("2d");
+
+img2 = new Image();
+//img2.crossOrigin = "anonymous"
+img2.onload = function() {
+   context2.drawImage(img2, 0, 0);
+};
+img2.src = 'cat2.jpg';
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+function HistogramBackprojection(){
+    let src = cv.imread('canvasInput1');
+let dst = cv.imread('canvasInput2');
+cv.cvtColor(src, src, cv.COLOR_RGB2HSV, 0);
+cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV, 0);
+let srcVec = new cv.MatVector();
+let dstVec = new cv.MatVector();
+srcVec.push_back(src); dstVec.push_back(dst);
+let backproj = new cv.Mat();
+let none = new cv.Mat();
+let mask = new cv.Mat();
+let hist = new cv.Mat();
+let channels = [0];
+let histSize = [50];
+let ranges = [0, 180];
+let accumulate = false;
+cv.calcHist(srcVec, channels, mask, hist, histSize, ranges, accumulate);
+cv.normalize(hist, hist, 0, 255, cv.NORM_MINMAX, -1, none);
+cv.calcBackProject(dstVec, channels, hist, backproj, ranges, 1);
+cv.imshow('canvasOutput', backproj);
+src.delete(); dst.delete(); srcVec.delete(); dstVec.delete();
+backproj.delete(); mask.delete(); hist.delete(); none.delete();
+
+}
+
+
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>

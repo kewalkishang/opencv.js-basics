@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<p id="status">OpenCV.js is loading...</p>
+<div>
+  <div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput" class="small"></canvas>
+        </td>
+    
+        <td>
+            <canvas id="canvasOutput" class="small"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput1</div>
+        </td>
+    
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div> 
+  <button onclick="addThreshold()">Global Threshold</button>
+  <button onclick="addAdaptiveThreshold()">Adaptive Threshold</button>
+
+
+
+</div>
+<script type="text/javascript">
+var canvas1 = document.getElementById("canvasInput");
+var context1 = canvas1.getContext("2d");
+
+var img1 = new Image();
+
+img1.onload = function() {
+   context1.drawImage(img1, 0, 0);
+};
+
+img1.src = 'cat1.jpg';
+img1.crossOrigin = "Anonymous";
+
+function onOpenCvReady(){
+ 
+document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+
+}
+
+function addThreshold(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+// You can try more different parameters
+cv.threshold(src, dst, 100, 200, cv.THRESH_BINARY);
+cv.imshow('canvasOutput', dst);
+src.delete();
+dst.delete();
+
+
+}
+
+function addAdaptiveThreshold(){
+    let src = cv.imread('canvasInput');
+let dst = new cv.Mat();
+cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+// You can try more different parameters
+cv.adaptiveThreshold(src, dst, 200, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 3, 2);
+cv.imshow('canvasOutput', dst);
+src.delete();
+dst.delete();
+}
+
+
+</script>
+<script async src="../../opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>
